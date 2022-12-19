@@ -1,0 +1,6 @@
+{
+    "scripts": {
+        "run": "go run main.go",
+        "air": "air"
+    }
+}
