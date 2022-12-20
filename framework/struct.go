@@ -1,7 +1,6 @@
 package framework
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,12 +8,12 @@ import (
 )
 
 type AppRequest struct {
-	Tx          *sql.Tx
-	AccountId   int
+	// Tx          *sql.Tx	 not using transaction of DB
+	User        *User
 	PathParams  *map[string]string
 	QueryParams *map[string]string
 	ReqBody     *string
-	UseJwt      bool
+	// UseJwt      bool  not using jwt for authentication
 }
 
 func (r *AppRequest) GetPathParamId(idName string) int {

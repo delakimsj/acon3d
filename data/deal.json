@@ -1,0 +1,68 @@
+{
+ "deal_id_sequence": 7,
+ "data": [
+  {
+   "deal_id": 1,
+   "title": "[추가할인 20%] product1",
+   "status": "mod_requested",
+   "product_id": 1,
+   "price": 10000,
+   "remark": "마지막 찬스",
+   "market": "web"
+  },
+  {
+   "deal_id": 2,
+   "title": "[추가할인 20%] product1",
+   "status": "on-sale",
+   "product_id": 1,
+   "price": 10000,
+   "remark": "마지막 찬스",
+   "market": "web"
+  },
+  {
+   "deal_id": 3,
+   "title": "[추가할인 20%] product1",
+   "status": "on-sale",
+   "product_id": 1,
+   "price": 10000,
+   "remark": "마지막 찬스",
+   "market": "web"
+  },
+  {
+   "deal_id": 4,
+   "title": "[추가할인 20%] product1",
+   "status": "on-sale",
+   "product_id": 1,
+   "price": 10000,
+   "remark": "마지막 찬스",
+   "market": "web"
+  },
+  {
+   "deal_id": 5,
+   "title": "[추가할인 20%] product1",
+   "status": "on-sale",
+   "product_id": 1,
+   "price": 10000,
+   "remark": "진짜 땡잡았어요",
+   "market": "web"
+  },
+  {
+   "deal_id": 6,
+   "title": "[추가할인 20%] product1",
+   "status": "on-sal",
+   "product_id": 1,
+   "price": 10000,
+   "remark": "진짜 땡잡았어요",
+   "market": "web"
+  },
+  {
+   "deal_id": 7,
+   "title": "[추가할인 20%] product1",
+   "status": "mod_requested",
+   "product_id": 1,
+   "price": 10000,
+   "remark": "진짜 땡잡았어요",
+   "market": "web"
+  }
+ ]
+}

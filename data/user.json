@@ -1,0 +1,13 @@
+{
+    "user_id_sequence": 2,
+    "data": [
+        {
+            "user_id": 1,
+            "role": "editor"
+        },
+        {
+            "user_id": 2,
+            "role": "author"
+        }
+    ]
+}

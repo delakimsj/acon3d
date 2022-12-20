@@ -1,0 +1,15 @@
+{
+    "exchange_rate_id_sequence": 2,
+    "data": [
+        {
+            "exchange_rate_id": 1,
+            "currency": "ja",
+            "rate": 0.1
+        },
+        {
+            "exchange_rate_id": 2,
+            "currency": "zh",
+            "rate": 0.0054
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+{
+ "product_id_sequence": 1,
+ "data": [
+  {
+   "product_id": 1,
+   "title": "title",
+   "status": "approved",
+   "description": "titles are...aaabbb",
+   "price": 10000,
+   "author_id": 1,
+   "editor_id": 1
+  }
+ ]
+}

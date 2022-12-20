@@ -1,42 +1,66 @@
 package framework
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 type InputTransactionMiddleware struct {
-	DbConn          *sql.DB
-	UseJwt          bool
-	UseNotification bool
-	ChannelID       string
+	// UseAuthHeader bool
 }
 
-// TransactionMiddleware : new!! to setup the database transaction middleware
 func TransactionMiddleware(inp *InputTransactionMiddleware) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := context.Background()
+		var appReq AppRequest
 
-		txHandle, err := inp.DbConn.BeginTx(ctx, nil)
-		if err != nil {
-			panic(err)
+		// check url if there's prefix /admin and
+		if strings.Split(c.Request.URL.Path, "/")[1] == "admin" {
+			if len(c.Request.Header["User_id"]) == 0 {
+				c.AbortWithStatus(401)
+			}
+
+			userId, err := strconv.Atoi(c.Request.Header["User_id"][0])
+			if err != nil {
+				c.AbortWithStatus(401)
+			}
+
+			user := GetUser(userId)
+			if user == nil {
+				c.AbortWithStatus(401)
+			}
+
+			// check authorization based on rbac permission matrix
+			rbacMatrix := GetRBACMatrix()
+			fullPath := fmt.Sprintf("%s %s", c.Request.Method, c.FullPath())
+			IsAuth, exist := (*rbacMatrix)[RBACItem{FullPath: fullPath, Role: user.Role}]
+			if !exist {
+				fmt.Println("not exist")
+				c.AbortWithStatus(401)
+			}
+
+			if !IsAuth {
+				fmt.Println("not authorized")
+				c.AbortWithStatus(401)
+			}
+
+			appReq.User = user
 		}
 
 		fmt.Println(">>> START>>> ----------------------------------------------------------------------")
-		fmt.Println("Beginning database transaction")
+		fmt.Println("Beginning transaction")
 		fmt.Printf("Requested URL : %s\n", c.Request.URL.Path)
 
 		defer func() {
 			// recovering from panic in app
 			if r := recover(); r != nil {
 				c.String(500, fmt.Sprint(r))
-				txHandle.Rollback()
+				// txHandle.Rollback()
 
 				// get a stack of app
 				buf := make([]byte, 1<<10)
@@ -51,15 +75,9 @@ func TransactionMiddleware(inp *InputTransactionMiddleware) gin.HandlerFunc {
 			}
 		}()
 
-		// get jwt claim
-		var appReq AppRequest
-
-		appReq.Tx = txHandle
-
 		appReq.PathParams = GetPathParams(c)
 		appReq.QueryParams = GetQueryParams(c)
 		appReq.ReqBody = GetRequestBodyPtr(c)
-		appReq.UseJwt = inp.UseJwt
 
 		c.Set("app_request", appReq)
 
@@ -68,13 +86,13 @@ func TransactionMiddleware(inp *InputTransactionMiddleware) gin.HandlerFunc {
 		if StatusInList(c.Writer.Status(), []int{http.StatusOK, http.StatusCreated}) {
 			fmt.Println("Committing transactions")
 			fmt.Println("---------------------------------------------------------------------- <<<  END  <<<")
-			if err := txHandle.Commit(); err != nil {
-				fmt.Println("trx commit error: ", err)
-			}
+			// if err := txHandle.Commit(); err != nil {
+			// 	fmt.Println("trx commit error: ", err)
+			// }
 		} else {
 			fmt.Println("Rolling back transaction due to status code   : " + fmt.Sprintf("%d", c.Writer.Status()))
 			fmt.Println("---------------------------------------------------------------------- <<<  END  <<<")
-			txHandle.Rollback()
+			// txHandle.Rollback()
 		}
 	}
 }
