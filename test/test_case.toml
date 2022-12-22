@@ -1,0 +1,196 @@
+# https://omnibus-dev.glassdome.cloud/workform
+endpoint = "{{endpoint}}"
+
+#####################################################################################
+# admin - author
+#####################################################################################
+[[folder]]
+name = "admin-author"
+
+[[folder.test_cases]]
+name = "register new product"
+method = "POST"
+url = "/admin/product"
+payload = """
+{
+    "name" : "workspace test",
+    "site_id" : 1
+}
+"""
+script = """
+pm.test("create workspace", function(){
+    pm.response.to.have.status(200);
+    pm.collectionVariables.set("productId", pm.response.json().product_id);
+})
+"""
+
+[[folder.test_cases]]
+name = "author can see its products"
+method = "GET"
+url = "/admin/product?author=1"
+payload = """
+{
+}
+"""
+script = """
+
+"""
+
+[[folder.test_cases]]
+name = "author can modify product when status 'registered'"
+method = "PUT"
+url = "/admin/product/{{productId}}"
+payload = """
+"""
+
+[[folder.test_cases]]
+name = "author can't modify product when status 'reviewed'"
+method = "PUT"
+url = "/admin/product/{{productId}}"
+payload = """
+"""
+
+script = """
+
+"""
+
+[[folder.test_cases]]
+name = "author can see deal list of its product"
+method = "GET"
+url = "/admin/deal?product_id={{productId}}"
+payload = """
+{
+}
+"""
+
+[[folder.test_cases]]
+name = "author can request modification of its product"
+method = "POST"
+url = "/request_deal_modification"
+payload = """
+"""
+
+
+#####################################################################################
+# admin - editor
+#####################################################################################
+[[folder]]
+name = "admin-deal"
+
+[[folder.test_cases]]
+name = "editor can list products registered"
+method = "GET"
+url = "/admin/product?status=registered"
+payload = """
+{
+}
+"""
+script = """
+"""
+
+[[folder.test_cases]]
+name = "editor can modify product"
+method = "PUT"
+url = "/admin/product/{{productId}}"
+payload = """
+{
+}
+"""
+script = """
+"""
+
+[[folder.test_cases]]
+name = "editor can review product"
+method = "PATCH"
+url = "/admin/product/{{productId}}"
+payload = """
+{
+}
+"""
+script = """
+"""
+
+[[folder.test_cases]]
+name = "editor can post product to market"
+method = "POST"
+url = "/admin/deal"
+payload = """
+{
+}
+"""
+script = """
+"""
+
+[[folder.test_cases]]
+name = "editor can list products modification requested"
+method = "GET"
+url = "/admin/deal?status=mod_requested"
+payload = """
+{
+}
+"""
+script = """
+"""
+
+[[folder.test_cases]]
+name = "editor can modify deal"
+method = "PUT"
+url = "/admin/deal/{{dealId}}"
+payload = """
+{
+}
+"""
+script = """
+"""
+
+[[folder.test_cases]]
+name = "editor can modify product"
+method = "PUT"
+url = "/admin/product/{{productId}}"
+payload = """
+{
+}
+"""
+script = """
+"""
+
+
+#####################################################################################
+# store
+#####################################################################################
+[[folder]]
+name = "store"
+
+[[folder.test_cases]]
+name = "customer can see deals in Korean"
+method = "GET"
+url = "/deal?lan=ko"
+payload = """
+"""
+
+[[folder.test_cases]]
+name = "customer can see deals in Japanese"
+method = "GET"
+url = "/deal?lan=ja"
+payload = """
+"""
+
+[[folder.test_cases]]
+name = "customer can see deals in chinese"
+method = "GET"
+url = "/deal?lan=zh"
+payload = """
+"""
+
+[[variable]]
+key = "endpoint"
+
+[[variable]]
+key = "token"
+
+[[variable]]
+key = "productId"
+
+[[variable]]
+key = "dealId"
+

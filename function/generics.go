@@ -1,4 +1,4 @@
-package framework
+package function
 
 import (
 	"encoding/json"
