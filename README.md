@@ -8,10 +8,10 @@
 * deal : 마켓에서 판매를 위한 엔티티입니다
     - editor의 review가 끝난 해당상품에 판매를 위한 가격, 할인정보, 프로모션 정보 등을 추가하여 생성합니다
     - product를 바로 거래하지 않고 deal을 쓰는 이유는 아래와 같습니다
-           - 상품 속성과 판매속성의 분리하여 데이터를 효율적으로 관리할 수 있습니다. 사용자의 데이터에 대한 실수를 방지 할 수 있습니다.
-           - 하나의 상품을 판매 채널, 프로모션에 따라 다른 가격으로 판매할 수 있습니다.
-           - 상품을 주문에서 바로 활용할 경우, 판매정보 변경에 따른 내역을 추적함에 어려움이 있습니다. 딜을 사용하면 해당 문제가 발생하지 않습니다. 
-           - deal에 판매수수료를 등록하여 프로모션에 따른 별도의 수수료를 측정할 수 있습니다.
+        - 상품 속성과 판매속성의 분리하여 데이터를 효율적으로 관리할 수 있습니다. 사용자의 데이터에 대한 실수를 방지 할 수 있습니다.
+        - 하나의 상품을 판매 채널, 프로모션에 따라 다른 가격으로 판매할 수 있습니다.
+        - 상품을 주문에서 바로 활용할 경우, 판매정보 변경에 따른 내역을 추적함에 어려움이 있습니다. 딜을 사용하면 해당 문제가 발생하지 않습니다. 
+        - deal에 판매수수료를 등록하여 프로모션에 따른 별도의 수수료를 측정할 수 있습니다.
 
  
 # Project Source Structure
@@ -20,10 +20,10 @@
 * framework/
     - db : data의 physical interface를 담당(이 프로젝트에서는 간단히 file을 db로 사용)
     - gin : 이 proj.는 golang의 gin web framework로 구현되어 있음. Middleware처리를 담당
-           - admin api에 대해 authorization 체크
-           - transaction 처리
-           - 입출력 처리
-           - error시 recovery 처리 
+        - admin api에 대해 authorization 체크
+        - transaction 처리
+        - 입출력 처리
+        - error시 recovery 처리 
     - struct : 이 앱의 입력과 출력을 표준화한 구조체를 정의
     - rbac : 이 앱에 role base access control matrix를 가짐
 * function : 공통 기능을 모아서, 함수단위로 handler에게 제공
@@ -49,8 +49,8 @@ go run main.go
 https://www.postman.com/alankim/workspace/acon3d-assessment/overview
 
 * 최소 요건에 따른 acceptance test
-방법 1. postman에서 run을 하시면 됩니다.
-방법 2. console에서 아래의 command를 통해 실행하시면 됩니다.
+    - 방법 1. postman에서 run을 하시면 됩니다.
+    - 방법 2. console에서 아래의 command를 통해 실행하시면 됩니다.
 ```
 newman run https://api.getpostman.com/collections/10804095-80f41f9e-2a8c-4083-8dcc-c5f85e5eb83b?apikey=PMAK-63a2c8dc270b5562cff5e9e1-aa818cd2eb8cbbbff83e66354a99270a6a --env-var "endpoint=localhost:8080"
 ```
