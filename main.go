@@ -71,12 +71,6 @@ func main() {
 			c.String(appRes.Status, appRes.RetMessage)
 		})
 
-		adminAPI.PATCH("/deal/:deal_id", func(c *gin.Context) {
-			appRes := handler.PatchDeal(framework.GetAppRequest(c))
-
-			c.String(appRes.Status, appRes.RetMessage)
-		})
-
 		// HTTP
 		adminAPI.POST("/request_deal_modification", func(c *gin.Context) {
 			appRes := handler.RequestDealModification(framework.GetAppRequest(c))
@@ -89,7 +83,13 @@ func main() {
 	customerAPI := router.Group("/")
 	{
 		customerAPI.GET("/deal", func(c *gin.Context) {
-			appRes := handler.GetListDeal(framework.GetAppRequest(c))
+			appRes := handler.GetListOnsaleDeal(framework.GetAppRequest(c))
+
+			c.String(appRes.Status, appRes.RetMessage)
+		})
+
+		customerAPI.GET("/deal/:deal_id", func(c *gin.Context) {
+			appRes := handler.GetOnsaleDeal(framework.GetAppRequest(c))
 
 			c.String(appRes.Status, appRes.RetMessage)
 		})

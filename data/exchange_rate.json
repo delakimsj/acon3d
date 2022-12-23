@@ -3,6 +3,11 @@
     "data": [
         {
             "exchange_rate_id": 1,
+            "currency": "ko",
+            "rate": 1
+        },
+        {
+            "exchange_rate_id": 1,
             "currency": "ja",
             "rate": 0.1
         },

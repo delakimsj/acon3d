@@ -6,15 +6,6 @@ import (
 	"acon3d.com/framework"
 )
 
-// type DealStatus string
-
-// const (
-// 	ON_SALE       = "on-sale"
-// 	CLOSED        = "closed"
-// 	PAUSED        = "paused"
-// 	MOD_REQUESTED = "mod_requested"
-// )
-
 type (
 	DBDeal struct {
 		DealID    int     `json:"deal_id"`
@@ -23,7 +14,9 @@ type (
 		ProductId int     `json:"product_id"`
 		Price     float64 `json:"price"`
 		Remark    string  `json:"remark"`
-		Market    string  `json:"market"` // using if channel is various
+		Market    string  `json:"market"`             // using if channel is various
+		FeeType   string  `json:"fee_type,omitempty"` // ratio | fixed
+		FeeRate   float64 `json:"fee_rate,omitempty"`
 	}
 
 	DBMSDeal struct {
@@ -69,19 +62,32 @@ func GetDeal(appReq *framework.AppRequest, dealId int) *DBDeal {
 	return nil
 }
 
-// func GetListOnsaleDeal(appReq *framework.AppRequest) *[]DBDeal {
-// 	var dbms DBMSDeal
-// 	dbms.LoadData()
+func GetListOnsaleDeal(appReq *framework.AppRequest) *[]DBDeal {
+	var dbms DBMSDeal
+	dbms.LoadData()
 
-// 	var ret []DBDeal
-// 	for _, v := range dbms.Data {
-// 		if v.Status == "on-sale" {
-// 			ret = append(ret, v)
-// 		}
-// 	}
+	var ret []DBDeal
+	for _, v := range dbms.Data {
+		if v.Status == "on-sale" {
+			ret = append(ret, v)
+		}
+	}
 
-// 	return &ret
-// }
+	return &ret
+}
+
+func GetOnsaleDeal(appReq *framework.AppRequest, dealId int) *DBDeal {
+	var dbms DBMSDeal
+	dbms.LoadData()
+
+	for _, v := range dbms.Data {
+		if v.Status == "on-sale" && v.DealID == dealId {
+			return &v
+		}
+	}
+
+	return nil
+}
 
 func GetListDeal(appReq *framework.AppRequest, condition *map[string]interface{}) *[]DBDeal {
 	var dbms DBMSDeal
@@ -114,6 +120,7 @@ func UpdateDeal(appReq *framework.AppRequest, inp *DBDeal, dealId int) *DBDeal {
 		return nil
 	} else {
 		dbms.Data[index] = *inp
+		dbms.Data[index].DealID = dealId
 	}
 
 	framework.WriteToDBFile("deal", dbms)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"sort"
 
 	"acon3d.com/function"
 	"github.com/pelletier/go-toml/v2"
@@ -13,6 +14,10 @@ const (
 	UT_NAME   = "acon3d assessment unit test"
 	UT_SCHEMA = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	UT_URL    = "https://api.getpostman.com/collections/10804095-e761a4b8-9920-4252-a7f1-52b7a46734ab"
+
+	UAT_NAME   = "acon3d assessment acceptance test"
+	UAT_SCHEMA = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	UAT_URL    = "https://api.getpostman.com/collections/10804095-80f41f9e-2a8c-4083-8dcc-c5f85e5eb83b"
 )
 
 func main() {
@@ -23,7 +28,7 @@ func main() {
 	createUnittest(testCases)
 
 	// create uat
-	// createUAT(appCfg, testCases)
+	createUAT(testCases)
 
 }
 
@@ -34,33 +39,39 @@ func createUnittest(testCases *TestCases) {
 	cfg.Collection.Info.Schema = UT_SCHEMA
 	cfg.Collection.Item = make([]Folder, 0)
 
-	for i := 0; i < len(testCases.Folder); i++ {
+	// add test cases
+	for _, f := range testCases.Folder {
 		var folder Folder
 
-		folder.Name = testCases.Folder[i].Name
+		folder.Name = f.Name
 
-		for j := 0; j < len(testCases.Folder[i].TestCases); j++ {
+		for _, tc := range f.TestCases {
 			var request Request
 
-			request.Name = testCases.Folder[i].TestCases[j].Name
+			request.Name = tc.Name
 			request.ProtocolProfileBehavior.DisableBodyPruning = true
 			request.Request.Body.Mode = "raw"
 			request.Request.Body.Options.Raw.Language = "json"
-			request.Request.Body.Raw = testCases.Folder[i].TestCases[j].Payload
-			request.Request.URL = fmt.Sprintf("%s%s", testCases.Endpoint, testCases.Folder[i].TestCases[j].URL)
-			request.Request.Method = testCases.Folder[i].TestCases[j].Method
+			request.Request.Body.Raw = tc.Payload
+			request.Request.URL = fmt.Sprintf("%s%s", testCases.Endpoint, tc.URL)
+			request.Request.Method = tc.Method
 
 			// making header
-			request.Request.Header = make([]Header, 0)
-			request.Request.Header = append(request.Request.Header, Header{
-				Key:   "Authorization",
-				Type:  "text",
-				Value: "bearer {{token}}",
-			})
+			if tc.UserId != "" {
+				request.Request.Header = make([]Header, 0)
+
+				request.Request.Header = append(request.Request.Header, Header{
+					Key:   "user_id",
+					Type:  "text",
+					Value: tc.UserId,
+				})
+			} else {
+				request.Request.Header = make([]Header, 0)
+			}
 
 			// if script is Empty
-			if testCases.Folder[i].TestCases[j].Script == "" {
-				testCases.Folder[i].TestCases[j].Script = fmt.Sprintf(`
+			if tc.Script == "" {
+				tc.Script = fmt.Sprintf(`
 				pm.test("'%s'Status code is 200", function () {
 					pm.response.to.have.status(200);
 				});				
@@ -71,7 +82,7 @@ func createUnittest(testCases *TestCases) {
 				Listen: "test",
 				Script: Script{
 					Type: "text/javascript",
-					Exec: []string{testCases.Folder[i].TestCases[j].Script},
+					Exec: []string{tc.Script},
 				},
 			})
 
@@ -82,8 +93,8 @@ func createUnittest(testCases *TestCases) {
 	}
 
 	// add variable
-	for i := 0; i < len(testCases.Variable); i++ {
-		cfg.Collection.Variable = append(cfg.Collection.Variable, Variable{Key: testCases.Variable[i].Key})
+	for _, v := range testCases.Variable {
+		cfg.Collection.Variable = append(cfg.Collection.Variable, Variable{Key: v.Key})
 	}
 
 	// creat new config file
@@ -112,108 +123,113 @@ func createUnittest(testCases *TestCases) {
 	fmt.Printf("%+v\n", resBodyUnitTest)
 }
 
-// // newman run https://api.getpostman.com/collections/1ddbeab5-7004-4fe7-8b66-d009aaefb70a?apikey=PMAK-62ccbe7b33de391acae3b31e-ae0c974ed898bcc6b4846a2a0ccfd16421 --env-var "endpoint=https://nhn-test-api.glassdome.cloud/workform" --env-var "companyId=999"
-// func createUAT(appCfg *config.Config, testCases *TestCases) {
-// 	// extract test_cases for UAT
-// 	requests := make(map[int]StructTestCase)
+// newman run https://api.getpostman.com/collections/10804095-80f41f9e-2a8c-4083-8dcc-c5f85e5eb83b?apikey=PMAK-63a2c8dc270b5562cff5e9e1-aa818cd2eb8cbbbff83e66354a99270a6a --env-var "endpoint=localhost:8080"
+func createUAT(testCases *TestCases) {
+	// extract test_cases for UAT
+	req := make(map[int]StructTestCase)
 
-// 	for i := 0; i < len(testCases.Folder); i++ {
-// 		for j := 0; j < len(testCases.Folder[i].TestCases); j++ {
-// 			if testCases.Folder[i].TestCases[j].Uat != 0 {
-// 				requests[testCases.Folder[i].TestCases[j].Uat] = testCases.Folder[i].TestCases[j]
-// 			}
-// 		}
-// 	}
+	for _, f := range testCases.Folder {
+		for _, tc := range f.TestCases {
+			if tc.Uat != 0 {
+				req[tc.Uat] = tc
+			}
+		}
+	}
 
-// 	// sort
-// 	keys := make([]int, 0, len(requests))
-// 	for k := range requests {
-// 		keys = append(keys, k)
-// 	}
+	// sort
+	keys := make([]int, 0, len(req))
+	for k := range req {
+		keys = append(keys, k)
+	}
 
-// 	sort.Ints(keys)
+	sort.Ints(keys)
 
-// 	// set general
-// 	var cfg PostmanUATConfig
+	// set general
+	var cfg PostmanUATConfig
 
-// 	cfg.Collection.Info.Name = appCfg.Postman.CollectionUat.Name
-// 	cfg.Collection.Info.Schema = appCfg.Postman.CollectionUat.Schema
-// 	cfg.Collection.Item = make([]Request, 0)
+	cfg.Collection.Info.Name = UAT_NAME
+	cfg.Collection.Info.Schema = UAT_SCHEMA
+	cfg.Collection.Item = make([]Request, 0)
 
-// 	// iterate
-// 	for _, k := range keys {
-// 		var tmp Request
+	// iterate
+	for _, k := range keys {
+		var tmp Request
 
-// 		tmp.Name = requests[k].Name
-// 		tmp.ProtocolProfileBehavior.DisableBodyPruning = true
-// 		tmp.Request.Body.Mode = "raw"
-// 		tmp.Request.Body.Options.Raw.Language = "json"
-// 		tmp.Request.Body.Raw = requests[k].Payload
-// 		tmp.Request.URL = fmt.Sprintf("%s%s", testCases.Endpoint, requests[k].URL)
-// 		tmp.Request.Method = requests[k].Method
+		tmp.Name = req[k].Name
+		tmp.ProtocolProfileBehavior.DisableBodyPruning = true
+		tmp.Request.Body.Mode = "raw"
+		tmp.Request.Body.Options.Raw.Language = "json"
+		tmp.Request.Body.Raw = req[k].Payload
+		tmp.Request.URL = fmt.Sprintf("%s%s", testCases.Endpoint, req[k].URL)
+		tmp.Request.Method = req[k].Method
 
-// 		// making header
-// 		tmp.Request.Header = make([]Header, 0)
-// 		tmp.Request.Header = append(tmp.Request.Header, Header{
-// 			Key:   "Authorization",
-// 			Type:  "text",
-// 			Value: "bearer {{token}}",
-// 		})
+		// making header
+		if req[k].UserId != "" {
+			tmp.Request.Header = make([]Header, 0)
 
-// 		// if script is Empty
-// 		if requests[k].Script == "" {
-// 			script := fmt.Sprintf(`
-// 			pm.test("'%s'Status code is 200", function () {
-// 				pm.response.to.have.status(200);
-// 			});
-// 			`, tmp.Name)
-// 			tmp.Event = append(tmp.Event, Event{
-// 				Listen: "test",
-// 				Script: Script{
-// 					Type: "text/javascript",
-// 					Exec: []string{script},
-// 				},
-// 			})
-// 		} else {
-// 			tmp.Event = append(tmp.Event, Event{
-// 				Listen: "test",
-// 				Script: Script{
-// 					Type: "text/javascript",
-// 					Exec: []string{requests[k].Script},
-// 				},
-// 			})
-// 		}
+			tmp.Request.Header = append(tmp.Request.Header, Header{
+				Key:   "user_id",
+				Type:  "text",
+				Value: req[k].UserId,
+			})
+		} else {
+			tmp.Request.Header = make([]Header, 0)
+		}
 
-// 		cfg.Collection.Item = append(cfg.Collection.Item, tmp)
-// 	}
+		// if script is Empty
+		if req[k].Script == "" {
+			script := fmt.Sprintf(`
+			pm.test("'%s'Status code is 200", function () {
+				pm.response.to.have.status(200);
+			});
+			`, tmp.Name)
+			tmp.Event = append(tmp.Event, Event{
+				Listen: "test",
+				Script: Script{
+					Type: "text/javascript",
+					Exec: []string{script},
+				},
+			})
+		} else {
+			tmp.Event = append(tmp.Event, Event{
+				Listen: "test",
+				Script: Script{
+					Type: "text/javascript",
+					Exec: []string{req[k].Script},
+				},
+			})
+		}
 
-// 	// add variable
-// 	for i := 0; i < len(testCases.Variable); i++ {
-// 		cfg.Collection.Variable = append(cfg.Collection.Variable, Variable{Key: testCases.Variable[i].Key})
-// 	}
+		cfg.Collection.Item = append(cfg.Collection.Item, tmp)
+	}
 
-// 	jsonPostmanConfig, err := json.Marshal(cfg)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	fmt.Println(string(jsonPostmanConfig))
+	// add variable
+	for i := 0; i < len(testCases.Variable); i++ {
+		cfg.Collection.Variable = append(cfg.Collection.Variable, Variable{Key: testCases.Variable[i].Key})
+	}
 
-// 	url := appCfg.Postman.CollectionUat.URL // send to postman
+	jsonPostmanConfig, err := json.Marshal(cfg)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(jsonPostmanConfig))
 
-// 	payload := function.MakePayload(cfg) // create payload
+	// url :=  // send to postman
 
-// 	// create header
-// 	var headerMap = map[string]string{
-// 		"Content-Type": "application/json",
-// 		"X-Api-Key":    "PMAK-62ccbe7b33de391acae3b31e-ae0c974ed898bcc6b4846a2a0ccfd16421",
-// 	}
+	payload := function.MakePayload(cfg) // create payload
 
-// 	// create Unit test
-// 	resBodyUnitTest := function.HttpCall("PUT", url, &headerMap, payload)
+	// create header
+	var headerMap = map[string]string{
+		"Content-Type": "application/json",
+		"X-Api-Key":    "PMAK-63a2c8dc270b5562cff5e9e1-aa818cd2eb8cbbbff83e66354a99270a6a",
+	}
 
-// 	// http call
-// 	fmt.Printf("%+v\n", resBodyUnitTest)
-// }
+	// create Unit test
+	resBodyUnitTest := function.HttpCall("PUT", UAT_URL, &headerMap, payload)
+
+	// http call
+	fmt.Printf("%+v\n", resBodyUnitTest)
+}
 
 ////////////////////////////////////////////////////////////////////////////
 // postman config
@@ -297,6 +313,7 @@ type StructTestCase struct {
 	Name    string `toml:"name"`
 	Method  string `toml:"method"`
 	URL     string `toml:"url"`
+	UserId  string `toml:"user_id"`
 	Payload string `toml:"payload"`
 	Script  string `toml:"script,omitempty"`
 	Uat     int    `toml:"uat"`

@@ -28,7 +28,7 @@ func GetRBACMatrix() *map[RBACItem]bool {
 	matrix[RBACItem{FullPath: "POST /admin/deal", Role: "editor"}] = true
 	matrix[RBACItem{FullPath: "PUT /admin/deal/:deal_id", Role: "editor"}] = true
 	matrix[RBACItem{FullPath: "PATCH /admin/deal/:deal_id", Role: "editor"}] = true
-	matrix[RBACItem{FullPath: "POST /admin/request_deal_modification", Role: "editor"}] = true
+	matrix[RBACItem{FullPath: "POST /admin/request_deal_modification", Role: "editor"}] = false
 
 	return &matrix
 }

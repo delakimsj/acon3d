@@ -22,16 +22,19 @@ func TransactionMiddleware(inp *InputTransactionMiddleware) gin.HandlerFunc {
 		// check url if there's prefix /admin and
 		if strings.Split(c.Request.URL.Path, "/")[1] == "admin" {
 			if len(c.Request.Header["User_id"]) == 0 {
+				fmt.Println("++++ 1")
 				c.AbortWithStatus(401)
 			}
 
 			userId, err := strconv.Atoi(c.Request.Header["User_id"][0])
 			if err != nil {
+				fmt.Println("++++ 2")
 				c.AbortWithStatus(401)
 			}
 
 			user := GetUser(userId)
 			if user == nil {
+				fmt.Println("++++ 3")
 				c.AbortWithStatus(401)
 			}
 
@@ -39,6 +42,10 @@ func TransactionMiddleware(inp *InputTransactionMiddleware) gin.HandlerFunc {
 			rbacMatrix := GetRBACMatrix()
 			fullPath := fmt.Sprintf("%s %s", c.Request.Method, c.FullPath())
 			IsAuth, exist := (*rbacMatrix)[RBACItem{FullPath: fullPath, Role: user.Role}]
+
+			fmt.Println("+++ c.FullPath() : ", c.FullPath())
+			fmt.Println("+++ FullPath     : ", fullPath)
+			fmt.Println("+++ Role         : ", user.Role)
 			if !exist {
 				fmt.Println("not exist")
 				c.AbortWithStatus(401)

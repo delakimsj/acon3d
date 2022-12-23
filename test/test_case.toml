@@ -8,67 +8,97 @@ endpoint = "{{endpoint}}"
 name = "admin-author"
 
 [[folder.test_cases]]
-name = "register new product"
+name = "author can register new product"
 method = "POST"
 url = "/admin/product"
+user_id = "2"
 payload = """
 {
-    "name" : "workspace test",
-    "site_id" : 1
+   "title": "흑백 및 컬러패턴 280종 세트",
+   "description": "안녕하세요, 안은진입니다. 이번 프로젝트는 [흑백 및 컬러 패턴 280종 세트]입니다.\\n2017년 3월 31일부터 2022년 8월 10일까지 제작한 소재 중 타일링 가능한 패턴소재를 묶었습니다.\\n흑백 소재와 컬러 소재, 컬러 배리에이션까지 모두 포함된 풀세트입니다.\\n총 파일 수는 538개이며, 종수는 280종입니다.",
+   "price": 65000
 }
 """
 script = """
-pm.test("create workspace", function(){
+pm.test("register new product", function(){
     pm.response.to.have.status(200);
     pm.collectionVariables.set("productId", pm.response.json().product_id);
 })
 """
-
-[[folder.test_cases]]
-name = "author can see its products"
-method = "GET"
-url = "/admin/product?author=1"
-payload = """
-{
-}
-"""
-script = """
-
-"""
+uat=1
 
 [[folder.test_cases]]
 name = "author can modify product when status 'registered'"
 method = "PUT"
 url = "/admin/product/{{productId}}"
-payload = """
-"""
-
-[[folder.test_cases]]
-name = "author can't modify product when status 'reviewed'"
-method = "PUT"
-url = "/admin/product/{{productId}}"
-payload = """
-"""
-
-script = """
-
-"""
-
-[[folder.test_cases]]
-name = "author can see deal list of its product"
-method = "GET"
-url = "/admin/deal?product_id={{productId}}"
+user_id = "2"
 payload = """
 {
+    "title": "[수정 by author]흑백 및 컬러패턴 280종 세트",
+    "description": "안녕하세요, 안은진입니다. 이번 프로젝트는 [흑백 및 컬러 패턴 280종 세트]입니다.\\n2017년 3월 31일부터 2022년 8월 10일까지 제작한 소재 중 타일링 가능한 패턴소재를 묶었습니다.\\n흑백 소재와 컬러 소재, 컬러 배리에이션까지 모두 포함된 풀세트입니다.\\n총 파일 수는 538개이며, 종수는 280종입니다.",
+    "price": 65000
 }
 """
+script = """
+"""
+uat=2
+
+[[folder.test_cases]]
+name = "author can't modify product when status 'approved'"
+method = "PUT"
+url = "/admin/product/{{productId}}"
+user_id = "2"
+payload = """
+{
+    "title": "[수정 by author]흑백 및 컬러패턴 280종 세트",
+    "description": "안녕하세요, 안은진입니다. 이번 프로젝트는 [흑백 및 컬러 패턴 280종 세트]입니다.\\n2017년 3월 31일부터 2022년 8월 10일까지 제작한 소재 중 타일링 가능한 패턴소재를 묶었습니다.\\n흑백 소재와 컬러 소재, 컬러 배리에이션까지 모두 포함된 풀세트입니다.\\n총 파일 수는 538개이며, 종수는 280종입니다.",
+    "price": 65000
+}
+"""
+script = """
+pm.test("author can't modify product when status 'approved'", function(){
+    pm.response.to.have.status(403);
+})
+"""
+uat=6
 
 [[folder.test_cases]]
 name = "author can request modification of its product"
 method = "POST"
-url = "/request_deal_modification"
+url = "/admin/request_deal_modification"
+user_id = "2"
 payload = """
+{
+    "deal_id": {{dealId}}
+}
 """
+script = """
+"""
+uat=200
+
+[[folder.test_cases]]
+name = "author can't create deal"
+method = "POST"
+url = "/admin/deal"
+user_id = "2"
+payload = """
+{
+    "title": "[추가40%]흑백 및 컬러패턴 280종 세트",
+    "market": "web",
+    "status": "on-sale",
+    "product_id": {{productId}},
+    "price" : 32400,
+    "remark" : "추가할인 ~12.28",
+    "fee_type":"ratio",
+    "fee_rate":0.3
+}
+"""
+script = """
+pm.test("author can't create deal", function(){
+    pm.response.to.have.status(401);
+})
+"""
+uat=199
 
 
 #####################################################################################
@@ -81,50 +111,75 @@ name = "admin-deal"
 name = "editor can list products registered"
 method = "GET"
 url = "/admin/product?status=registered"
+user_id = "1"
 payload = """
 {
 }
 """
 script = """
 """
+uat=3
 
 [[folder.test_cases]]
 name = "editor can modify product"
 method = "PUT"
 url = "/admin/product/{{productId}}"
+user_id = "1"
 payload = """
 {
+   "title": "[수정 by editor]흑백 및 컬러패턴 280종 세트",
+   "description": "안녕하세요, 안은진입니다. 이번 프로젝트는 [흑백 및 컬러 패턴 280종 세트]입니다.\\n2017년 3월 31일부터 2022년 8월 10일까지 제작한 소재 중 타일링 가능한 패턴소재를 묶었습니다.\\n흑백 소재와 컬러 소재, 컬러 배리에이션까지 모두 포함된 풀세트입니다.\\n총 파일 수는 538개이며, 종수는 280종입니다.",
+   "price": 65000
 }
 """
 script = """
 """
+uat=4
 
 [[folder.test_cases]]
-name = "editor can review product"
+name = "editor can approve product"
 method = "PATCH"
 url = "/admin/product/{{productId}}"
+user_id = "1"
 payload = """
 {
+    "status":"approved"
 }
 """
 script = """
 """
+uat=5
 
 [[folder.test_cases]]
 name = "editor can post product to market"
 method = "POST"
 url = "/admin/deal"
+user_id = "1"
 payload = """
 {
+    "title": "[추가40%]흑백 및 컬러패턴 280종 세트",
+    "market": "web",
+    "status": "on-sale",
+    "product_id": {{productId}},
+    "price" : 32400,
+    "remark" : "추가할인 ~12.28",
+    "fee_type":"ratio",
+    "fee_rate":0.3
 }
 """
 script = """
+pm.test("editor can post product to market", function(){
+    pm.response.to.have.status(200);
+    pm.collectionVariables.set("dealId", pm.response.json().deal_id);
+})
 """
+uat=7
 
 [[folder.test_cases]]
 name = "editor can list products modification requested"
 method = "GET"
 url = "/admin/deal?status=mod_requested"
+user_id = "1"
 payload = """
 {
 }
@@ -136,24 +191,31 @@ script = """
 name = "editor can modify deal"
 method = "PUT"
 url = "/admin/deal/{{dealId}}"
+user_id = "1"
 payload = """
 {
+    "title": "[추가40%]흑백 및 컬러패턴 280종 세트",
+    "market": "web",
+    "status": "on-sale",
+    "product_id": {{productId}},
+    "price" : 32400,
+    "remark" : "추가할인 ~12.31",
+    "fee_type":"ratio",
+    "fee_rate":0.3
 }
 """
-script = """
-"""
+uat=300
+
 
 [[folder.test_cases]]
 name = "editor can modify product"
 method = "PUT"
 url = "/admin/product/{{productId}}"
+user_id = "1"
 payload = """
 {
 }
 """
-script = """
-"""
-
 
 #####################################################################################
 # store
@@ -167,6 +229,7 @@ method = "GET"
 url = "/deal?lan=ko"
 payload = """
 """
+uat=101
 
 [[folder.test_cases]]
 name = "customer can see deals in Japanese"
@@ -174,12 +237,50 @@ method = "GET"
 url = "/deal?lan=ja"
 payload = """
 """
+uat=102
 
 [[folder.test_cases]]
 name = "customer can see deals in chinese"
 method = "GET"
 url = "/deal?lan=zh"
 payload = """
+"""
+uat=103
+
+[[folder.test_cases]]
+name = "in valid language code"
+method = "GET"
+url = "/deal?lan=kr"
+payload = """
+"""
+uat=104
+script = """
+pm.test("in valid language code", function(){
+    pm.response.to.have.status(400);
+})
+"""
+
+[[folder.test_cases]]
+name = "Customer can see deal detail"
+method = "GET"
+url = "/deal/{{dealId}}?lan=ko"
+payload = """
+"""
+uat=105
+script = """
+"""
+
+[[folder.test_cases]]
+name = "The deal being requested modification can't be shown on market"
+method = "GET"
+url = "/deal/{{dealId}}?lan=ko"
+payload = """
+"""
+uat=201
+script = """
+pm.test("The deal being requested modification can't be shown on market", function(){
+    pm.response.to.have.status(404);
+})
 """
 
 [[variable]]

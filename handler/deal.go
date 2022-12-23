@@ -2,91 +2,60 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 
 	"acon3d.com/framework"
 	"acon3d.com/model"
 )
 
-type DealListResponse struct {
-	DealID       int     `json:"deal_id"`
-	Title        string  `json:"title"`
-	Status       string  `json:"status"` // on-sale, closed, paused
-	Price        float64 `json:"price"`
-	Remark       string  `json:"remark"`
-	Market       string  `json:"market"` // using if channel is various
-	ProductTitle string  `json:"product_title"`
-	ProductPrice float64 `json:"product_price"`
+func isValidDealInput(appReq *framework.AppRequest, inp *model.DBDeal) (bool, string) {
+	if !model.IsValidDealStatus(inp.Status) {
+		return false, "deal status"
+	}
+
+	product := model.GetProduct(appReq, inp.ProductId)
+	if product == nil {
+		return false, "product id"
+	}
+
+	// change fee
+	if inp.FeeType != "" {
+		if !model.IsValidFeeType(inp.FeeType) {
+			return false, "fee_type"
+		}
+
+		if inp.FeeRate == 0 {
+			return false, "fee_rate"
+		}
+	} else {
+		return false, "fee_type"
+	}
+
+	return true, ""
 }
 
 func GetListDeal(appReq *framework.AppRequest) *framework.AppResponse {
-	var ret []DealListResponse
 	condition := make(map[string]interface{})
-
-	// get query from params
-	lan := (*appReq.QueryParams)["lan"]
-	if !IsValidLanguageCode(lan) {
-		return framework.GetBadRequestAppResponse("language code is not valid")
-	}
-
-	status := (*appReq.QueryParams)["status"]
-	if status != "" {
-		if !model.IsValidDealStatus(status) {
-			return framework.GetBadRequestAppResponse("Proper status code required")
-		}
-
-		condition["status"] = status
-	}
 
 	// get list of deal
 	deals := model.GetListDeal(appReq, &condition)
-	for _, d := range *deals {
-		product := model.GetProduct(appReq, d.ProductId)
-
-		ret = append(ret, DealListResponse{
-			DealID:       d.DealID,
-			Title:        TranslateTo(lan, d.Title),
-			Status:       d.Status,
-			Price:        ExchageCurrency(appReq, lan, d.Price),
-			Remark:       TranslateTo(lan, d.Remark),
-			Market:       d.Market,
-			ProductTitle: TranslateTo(lan, product.Title),
-			ProductPrice: ExchageCurrency(appReq, lan, product.Price),
-		})
-	}
 
 	// make a response
-	return framework.GetOkAppResponse(ret)
-}
-
-type DealResponse struct {
-	DealID  int               `json:"deal_id"`
-	Title   string            `json:"title"`
-	Status  string            `json:"status"` // on-sale, closed, paused
-	Price   float64           `json:"price"`
-	Remark  string            `json:"remark"`
-	Market  string            `json:"market"` // using if channel is various
-	Product model.DBMSProduct `json:"product"`
-	// ProductReview model.DBMSProductReview `json:"product_review"`
-}
-
-func GetDeal(appReq *framework.AppRequest) *framework.AppResponse {
-	return nil
+	return framework.GetOkAppResponse(deals)
 }
 
 func PostDeal(appReq *framework.AppRequest) *framework.AppResponse {
 	// unmarshaling object
 	var body model.DBDeal
 	if json.Unmarshal([]byte(*appReq.ReqBody), &body) != nil {
-		return framework.GetBadRequestAppResponse("error when unmarshaling object")
+		return framework.GetBadRequestAppResponse("Proper request required")
 	}
 
-	if !model.IsValidDealStatus(body.Status) {
-		return framework.GetBadRequestAppResponse("Proper deal status required")
-	}
-
-	product := model.GetProduct(appReq, body.ProductId)
-	if product == nil {
-		return framework.GetBadRequestAppResponse("Proper product id required")
+	if ok, field := isValidDealInput(appReq, &body); !ok {
+		return framework.GetBadRequestAppResponse(
+			fmt.Sprintf("Proper %s required", field),
+		)
 	}
 
 	// create new
@@ -96,11 +65,27 @@ func PostDeal(appReq *framework.AppRequest) *framework.AppResponse {
 }
 
 func PutDeal(appReq *framework.AppRequest) *framework.AppResponse {
-	return nil
-}
+	// unmarshaling object
+	var body model.DBDeal
+	if json.Unmarshal([]byte(*appReq.ReqBody), &body) != nil {
+		return framework.GetBadRequestAppResponse("error when unmarshaling object")
+	}
 
-func PatchDeal(appReq *framework.AppRequest) *framework.AppResponse {
-	return nil
+	if ok, field := isValidDealInput(appReq, &body); !ok {
+		return framework.GetBadRequestAppResponse(
+			fmt.Sprintf("Proper %s required", field),
+		)
+	}
+
+	dealId, err := strconv.Atoi((*appReq.PathParams)["deal_id"])
+	if err != nil {
+		return framework.GetBadRequestAppResponse("Proper deal_id required")
+	}
+
+	// update new
+	deal := model.UpdateDeal(appReq, &body, dealId)
+
+	return framework.GetOkAppResponse(deal)
 }
 
 func RequestDealModification(appReq *framework.AppRequest) *framework.AppResponse {

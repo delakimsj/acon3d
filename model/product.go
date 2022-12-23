@@ -16,9 +16,7 @@ type (
 		Title       string  `json:"title"`
 		Status      string  `json:"status"` // registered | approved
 		Description string  `json:"description"`
-		Price       float64 `json:"price"`              // price is in KRW
-		FeeType     string  `json:"fee_type,omitempty"` // ratio | fixed
-		FeeRate     float64 `json:"fee_rate,omitempty"`
+		Price       float64 `json:"price"` // price is in KRW
 		AuthorID    int     `json:"author_id"`
 		EditorID    int     `json:"editor_id"`
 	}
@@ -112,6 +110,7 @@ func UpdateProduct(appReq *framework.AppRequest, inp *DBProduct, productId int) 
 		return nil
 	} else {
 		dbms.Data[index] = *inp
+		dbms.Data[index].ProductID = productId
 	}
 
 	framework.WriteToDBFile("product", dbms)

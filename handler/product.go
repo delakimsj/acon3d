@@ -66,16 +66,31 @@ func PutProduct(appReq *framework.AppRequest) *framework.AppResponse {
 		return framework.GetBadRequestAppResponse("Proper product_id required")
 	}
 
+	// get product
+	product := model.GetProduct(appReq, productId)
+	if product == nil {
+		return framework.GetNotFoundAppResponse("product")
+	}
+
+	// author only can edit product in status 'registered'
+	if appReq.User.Role == "author" {
+		if product.Status == "approved" {
+			return framework.GetForbiddenAppResponse("You can't modify product in status 'approved'")
+		}
+	} else {
+		product.EditorID = appReq.User.UserID
+	}
+
 	// unmarshaling object
 	var body model.DBProduct
 	if json.Unmarshal([]byte(*appReq.ReqBody), &body) != nil {
 		return framework.GetBadRequestAppResponse("error when unmarshaling object")
 	}
 
-	// create new
-	product := model.UpdateProduct(appReq, &body, productId)
+	// update
+	updatedProduct := model.UpdateProduct(appReq, &body, productId)
 
-	return framework.GetOkAppResponse(product)
+	return framework.GetOkAppResponse(updatedProduct)
 }
 
 func PatchProduct(appReq *framework.AppRequest) *framework.AppResponse {
@@ -102,20 +117,6 @@ func PatchProduct(appReq *framework.AppRequest) *framework.AppResponse {
 			return framework.GetBadRequestAppResponse("Proper status required")
 		}
 		product.Status = body.Status
-	}
-
-	// change fee
-	if body.FeeType != "" {
-		if !model.IsValidFeeType(body.FeeType) {
-			return framework.GetBadRequestAppResponse("Proper fee_type required")
-		}
-
-		if body.FeeRate == 0 {
-			return framework.GetBadRequestAppResponse("Proper fee_rate required")
-		}
-
-		product.FeeType = body.FeeType
-		product.FeeRate = body.FeeRate
 	}
 
 	// update editor
